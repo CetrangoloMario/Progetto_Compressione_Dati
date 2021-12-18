@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.fft as sp
 
 def DFT_slow(x):
     """Compute the discrete Fourier Transform of the 1D array x"""

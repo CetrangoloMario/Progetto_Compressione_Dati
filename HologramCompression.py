@@ -1,13 +1,12 @@
 import numpy as np
-import h5py
 import matplotlib.pyplot as plt
 import scipy.io
 import math as math
 import scipy.fft
-from scipy.linalg import dft
-from scipy.fftpack import fft, ifft
 import confresnel1D
 import fourierfresnel1D
+from givensphaserot import givenphaserot
+
 
 
 def intfresnel2D(x, fw, pp, z, wlen, algo):
@@ -74,59 +73,16 @@ def intfresnel2D(x, fw, pp, z, wlen, algo):
     return x
 
 
-def givenphaserot(x, p, fw):
-    assert np.size(x) == np.size(p), "Input argument X & P must be equal dimension"
-
-    # givens rotation
-    def givens_rot(theta, x):
-        m = np.abs(theta) < peps
-        m = m.astype(int) #ok m
-        a = np.divide((np.cos(theta) - 1), np.sin(theta))
-        a[m] = 0
-        b = np.sin(theta)
-        b[m] = 0
-        if fw:
-            sg = 1
-        else:
-            sg = -1
-
-        x = x + sg * np.round(np.multiply(a, np.imag(x)))
-        #print(x[542,521])
-        x = x + sg * 1j * np.round(np.multiply(b, np.real(x)))
-        #print(x[542,521])
-        x = x + sg * np.round(np.multiply(a, np.imag(x)))
-        #print(x[542,521])
-        return x
-
-    # determine in what phase quadrant  to operate
-    def quadrant_swap(q):
-        m = np.logical_or(q == 1, q == 3)
-        m = m.astype(int)  # converto la matrice da boolean a int
-        x[m] = -np.imag(x[m]) + 1j * np.real(x[m])
-        #print("X: ",x[m])
-        x[q > 1] = -x[q > 1]
-        return x
-
-    q = np.mod(np.floor((2 * (p/np.pi)) + .5), 4)
-    print(q[4,4])
-    somma = np.pi/2
-    t = np.mod(p+(np.pi/4),np.pi/2) - (np.pi/4)
-    #print(t[4,4]) #0.7291
-    peps = 1e-7  # phase epsilon
-    if fw:
-        x = quadrant_swap(q)
-    x = givens_rot(t, x)
-    if not fw:
-        """x = quadrant_swap(np.mod(4 - q, 4))"""
-    return x
-
 
 def fourier_phase_multiply(r, fw, pp, z, wlen):
     n = np.size(r, 0)
     xx = np.power(np.matrix(np.arange(-n / 2, n / 2)), 2)
     ppout = wlen * np.abs(z) / n / pp
-    p = math.pi * np.power(ppout, 2) / np.multiply((wlen * np.abs(z)), (xx + xx.transpose())) + 2 * np.pi * z / wlen
+
+    temp = (math.pi * np.power(ppout, 2)) /((wlen * np.abs(z)))
+    p=np.multiply(temp, (xx + xx.transpose()))+ (2 * np.pi * z )/ wlen
     return givenphaserot(r,p, fw)
+
 
 
 def main():
