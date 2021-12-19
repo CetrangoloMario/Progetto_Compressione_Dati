@@ -96,6 +96,7 @@ def main():
 
     holo = np.matrix(f.get("holo"))  # estraggo dal file .mat solo holo e lo converto da np a array
 
+
     # plt.imshow(np.real(holo), cmap="gray")
 
     # plt.show()  # mostro l'ologramma pre - compressione
